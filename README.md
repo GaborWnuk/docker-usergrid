@@ -14,14 +14,23 @@ Image tags
 
 Usage
 -----
+First of all - You need Cassandra. If You don't have working instance already, installation using docker is pretty straightforward.
 
-To create the image `gaborwnuk/usergrid`, execute the following command on the docker-usergrid folder:
+	docker run -p 9042:9042 -d --name cass1 poklet/cassandra
+	
+Check Your instance IP addres with following command:
+
+	docker inspect `docker ps | grep -v CONTAINER | awk '{ print $1 }'` | grep IPAddress
+	
+In our case address is `172.17.0.146`. We will use it from now on.
+
+*Installation from repository only*: to create the image `gaborwnuk/usergrid`, execute the following command on the docker-usergrid folder:
 
     docker build -t gaborwnuk/usergrid .
 
 To run the image and bind to port :
 
-    docker run -e CASSANDRA_HOST=127.0.0.1:8080 -d -p 8080:8080 gaborwnuk/usergrid
+    docker run -e CASSANDRA_HOST=172.17.0.146:9042 -d -p 8080:8080 gaborwnuk/usergrid
 
 
 The first time that you run your container, a new user `admin` with all privileges 
