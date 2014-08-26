@@ -44,4 +44,4 @@ RUN ln -s /usr/share/tomcat7/webapps/ /etc/tomcat7/webapps
 #
 EXPOSE 8080
 
-#ENTRYPOINT ./run.sh
+ENTRYPOINT ./run.sh
