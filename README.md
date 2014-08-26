@@ -17,12 +17,6 @@ Usage
 First of all - You need Cassandra. If You don't have working instance already, installation using docker is pretty straightforward.
 
 	docker run -p 9042:9042 -d --name cass1 poklet/cassandra
-	
-Check Your instance IP addres with following command:
-
-	docker inspect `docker ps | grep -v CONTAINER | awk '{ print $1 }'` | grep IPAddress
-	
-In our case address is `172.17.0.146`. We will use it from now on.
 
 *Installation from repository only*: to create the image `gaborwnuk/usergrid`, execute the following command on the docker-usergrid folder:
 
@@ -30,7 +24,7 @@ In our case address is `172.17.0.146`. We will use it from now on.
 
 To run the image and bind to port :
 
-    docker run -e CASSANDRA_HOST=172.17.0.146:9042 -d -p 8080:8080 gaborwnuk/usergrid
+    docker run -d -p 8080:8080 --link cass1:cassandra gaborwnuk/usergrid
 
 
 The first time that you run your container, a new user `admin` with all privileges 
@@ -49,17 +43,10 @@ You will see an output like the following:
 	You can now configure to this Tomcat server using:
 	
 	    admin:rGlsLYtiPce2
-	
-	Your Cassandra host is:
-	    127.0.0.1:8080
-	
-	Your Apache usergrid_ superuser credentials are:
-	
-	    superuser:IK7o8Pw8uYJf
-	
-	========================================================================
 
-In this case, `rGlsLYtiPce2` is the password allocated to the `admin` user for Tomcat admin console, and `IK7o8Pw8uYJf` is the password for `superuser` account of usergrid_ service. You can define Your non-random, specific properties using `-e` flag, as described later in this document.
+In this case, `rGlsLYtiPce2` is the password allocated to the `admin` user for Tomcat admin console.
+
+**Important**: default username and password for usergrid_ is `superuser` and `VDprvB6bt7ebDW`. This can be changed by customising Dockerfile to suit Your needs and add custom `usergrid-*.properties` file. **Without modifications this should not be used on production.**
 
 You can now check usergrid_ status with:
 
@@ -71,6 +58,40 @@ Probably the most important value here is:
 	
 If Your value is `false` - usergrid_ won't work as Cassandra instance is required as storage database. Check [docker-cassandra](https://github.com/nicolasff/docker-cassandra).
 
+To fully configure Your Cassandra/usergrid_ , just:
+
+	curl http://superuser:VDprvB6bt7ebDW@127.0.0.1:8080/system/database/setup
+	
+After few moments You should receive following response:
+
+	{
+	  "action" : "cassandra setup",
+	  "status" : "ok",
+	  "timestamp" : 1409052433807,
+	  "duration" : 7442
+	}
+
+Now You're good to go - create Your account:
+
+	curl -X POST  \
+	     -d 'organization=gwp&username=admin&name=Admin&email=admin@example.com&password=password' \
+	     http://127.0.0.1:8080/management/organizations
+	     
+Authenticate and get token:
+
+	curl "http://127.0.0.1:8080/management/token?grant_type=password&username=admin&password=password"
+	
+You should receive authentication feedback with token used in all following REST requests, ie:
+
+	curl -H "Authorization: Bearer YWMtA6C8Ti0bEeSpsz3neosJlAAAAUg2TNNzocqs39RLNbd_V5gr2jaoUacix0E" \
+	     -H "Content-Type: application/json" \
+	     -X POST -d '{ "name":"myapp" }' \
+	     http://127.0.0.1:8080/management/orgs/gwp/apps
+
+And so on.
+
+From now on, if You're interested on how to secure Your usergrid_ instance, refer to [https://github.com/apache/incubator-usergrid/tree/master/stack](https://github.com/apache/incubator-usergrid/tree/master/stack) and [https://usergrid.incubator.apache.org/docs/](https://usergrid.incubator.apache.org/docs/).
+	
 
 Customising usergrid_ docker container
 -------------------------------------------------
@@ -83,7 +104,3 @@ set the environment variable `TOMCAT_PASS` to your specific password when runnin
 Following environmental variables are available:
 
 * `TOMCAT_PASS` (**Optional**, default: random generated) - Tomcat instance password, use if required. You won't probably need this.
-* `CASSANDRA_HOST` (**Required**) - Cassandra database host, use host visible from docker container.
-* `UG_USERNAME` (**Optional**, default: superuser) - usergrid_ superuser username.
-* `UG_EMAIL` (**Optional**, default: superuser@localhost) - usergrid_ superuser e-mail.
-* `UG_PASSWORD` (**Optional**, default: random generated) - usergrid_ superuser username.
