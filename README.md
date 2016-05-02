@@ -48,6 +48,13 @@ In this case, `rGlsLYtiPce2` is the password allocated to the `admin` user for T
 
 **Important**: default username and password for usergrid_ is `superuser` and `VDprvB6bt7ebDW`. This can be changed by customising Dockerfile to suit Your needs and add custom `usergrid-*.properties` file. **Without modifications this should not be used on production.**
 
+**New**: You can now set certain properties using ENV vars. I.e. --env SYSADMIN_PASSWORD=mypassword.
+
+	docker run -d -p 8080:8080 --env SYSADMIN_PASSWORD=mypassword --link cass1:cassandra gaborwnuk/usergrid
+
+For the full list of ENV vars see usergrid-custom.properties. See the [envplate](https://github.com/kreuzwerker/envplate) library for more details on syntax
+and variable replacement rules.
+
 You can now check usergrid_ status with:
 
 	curl http://127.0.0.1:8080/status

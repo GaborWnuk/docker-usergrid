@@ -1,0 +1,24 @@
+
+cassandra:
+  image: poklet/cassandra
+  ports:
+   - "9042:9042"
+   - "9160:9160"
+   - "7199:7199"
+usergrid:
+  environment:
+   SYSADMIN_EMAIL: cswanberg@mad-swan.com
+   SYSADMIN_PASSWORD: password
+  build: .
+  links:
+   - cassandra
+  ports:
+   - "8080:8080"
+usergridportal:
+  image: sumanyu/usergrid-portal
+  ports:
+   - "3000:3000"
+opscenter:
+  image: poklet/opscenter
+  ports:
+   - "8888:8888"
